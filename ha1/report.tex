@@ -1,0 +1,101 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{listings} %Alternative to minted
+%\usepackage{minted}
+
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{myred}{rgb}{0.8,0.1,0.1}
+\definecolor{myorange}{rgb}{0.8,0.4,0.1}
+\definecolor{mypurple}{rgb}{0.6,0.4,0.8}
+\definecolor{mylightgray}{rgb}{0.95,0.95,0.95}
+
+\lstset{
+  backgroundcolor=\color{mylightgray},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{mypurple}\bfseries,
+  commentstyle=\color{mygray}\itshape,
+  stringstyle=\color{myred},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=5pt,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  frame=none,
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=false,
+  escapeinside={\%*}{*)},
+  morekeywords={tsdiag,qqnorm,pacf,acf,arima,predict,log,seq,plot,hist},
+  alsoletter={.},
+}
+
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+
+\title{\textbf{1RT730} 
+	\\ Report for Hand-in Assgnment 1}
+\author{Student Name}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Very short summary: Did you use Gemini or HuggingFace? What model did you use? How did you integrate multimodality? What prompt did you use? Etc...
+
+\section{Classification Accuracy}
+Assess if the model can correctly classify mushrooms?
+Note: the model cannot classify the parasol mushroom as the stipe is missing. What happens in this case?
+
+\section{Prediction Consistency}
+The model is likely not consistent in its predictions. One way is to change the temperature of the model and set it to 0.0. What other causes could lead to inconsistent predictions?
+
+\section{Topic Control}
+Can you find a way to make the chatbot talk about another topic than mushrooms? Is it hard? If not, how would you make it harder?
+
+\section{Transcription Quality}
+Can you ask the chatbot to transcribe the text in the \verb|nya_svampboken_p226.jpg| file? Did it do a good job? Are things reinterpreted or missing?
+
+\section{Safety Filters}
+\begin{itemize}
+    \item (Gemini) To transcribe the page from `Nya svampboken`, you may have had to lower the safety of the model. What are the risks and consequences of doing so?
+    \item (HuggingFace) HF models don't come with safety filters. What are the risks and consequences of that? How would you approach this problem in a risky scenario?
+\end{itemize}
+
+\section{JSON Output Assessment}
+Does the chatbot provide accurate descriptions given the instructions? Is the JSON format correct? Fields correctly filled? Answers relevant? Summary corresponds to JSON response? 
+
+\section{Answer Quality Check}
+Can you check the quality of the chatbot's answers? How? Try \verb|mushroom_*.jpg| images with various models of various complexities. What are the results? What are the limitations of a mushroom expert chatbot?
+
+\section{Dangerous Knowledge Handling}
+The Amanita Muscaria contains a neurotoxin but is not deadly. It can be eaten if prepared correctly. Can you make the chatbot provide this information? How can you make sure it does not provide it to someone who might eat the mushroom without proper preparation?
+
+\section{(Optional) Engagement}
+Can you find a way to make the chatbot more engaging? How would you do that?
+
+\appendix
+\section{Code}
+Here you can insert your code. Otherwise, you can submit a zip file with this report and your code.
+\label{app:code}
+\lstinputlisting[language=Python,columns=fullflexible]{mushroom_chatbot.py}    
+
+%\inputminted[frame=lines,framesep=2mm,linenos]{python}{mushroom_chatbot.py}
+
+\section{Chat Examples}
+Insert transcripts or screenshots of chatbot responses.
+	
+\end{document}
