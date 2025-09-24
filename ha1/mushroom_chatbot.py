@@ -1,44 +1,41 @@
 """A mushroom expert chatbot that responds to user queries about mushrooms."""
-import gradio as gr, random
-from gradio import ChatMessage
-
-def response(message, history):
-    if len(message["files"]) != 0:
-        return "A file seems to have been uploaded."
-    if "-test-" in message["text"].lower():
-        return "The interface is up. However, needs to be connected to some strong LLM."
-    if "hello" in message["text"].lower():
-        return "Hello! I am a mushroom expert. Ask me anything about mushrooms."
-    elif "bye" in message["text"].lower():
-        return "Goodbye! Have a great day."
-    else:
-        return random.choice([
-            "I am not sure about that. Can you ask me something else?",
-            "Could you reformulate your question? I am not sure I understand.",
-            "I don't understand, can you ask someone else?",
-            "What a stellar question! I am not sure about the answer though.",
-            "You know what? I am not cut out for this. I am going to take a break."
-        ])
-
-#######################################
-# TODO: Add the Gemini (or HuggingFace) chatbot to the interface.
 from typing import Iterator
 from dotenv import load_dotenv
-import os, google.generativeai as genai
-
 load_dotenv()
+
+import os, random
 
 API_KEY = str(os.getenv("GEMINI_API_KEY"))
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+import google.generativeai as genai
 
-def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
-    """
-    Streams both thoughts and responses from the Gemini model.
-    """
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel("gemini-2.5-flash")
+
+import gradio as gr
+from gradio import ChatMessage
+import base64
+from PIL import Image
+
+def image_to_base64(image_path):
+    with open(image_path, 'rb') as img:
+        encoded_string = base64.b64encode(img.read())
+    return encoded_string.decode('utf-8')
+
+def stream_gemini_response(file, user_message: str, messages: list) -> Iterator[list]:
+    """    Streams both thoughts and responses from the Gemini model.    """
+    payload = user_message
+
+    if file:
+        print("Image was uploaded. Continuing....")
+        base64img = image_to_base64(file)
+        print(payload + " " + f'data:image/jpeg;base64,{base64img}')
+        payload = [user_message, Image.open(file)]
+
+    print(user_message, messages)
+
     # Initialize response from Gemini
-    response = model.generate_content(user_message, stream=True)
+    response = model.generate_content(payload, stream=True)
     
     # Initialize buffers
     thought_buffer = ""
@@ -50,7 +47,6 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
         ChatMessage(
             role="assistant",
             content="",
-            metadata={"title": "⏳ Thinking: *The thoughts produced by the Gemini 2.0 Flash model are experimental*"}
         )
     )
     
@@ -64,7 +60,7 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
             messages[-1] = ChatMessage(
                 role="assistant",
                 content=thought_buffer,
-                metadata={"title": "⏳Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
+                metadata={"title": "Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
             )
             
             # Add response message
@@ -90,39 +86,24 @@ def stream_gemini_response(user_message: str, messages: list) -> Iterator[list]:
             messages[-1] = ChatMessage(
                 role="assistant",
                 content=thought_buffer,
-                metadata={"title": "⏳Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
+                metadata={"title": "Thinking: *The thoughts produced by the Gemini2.0 Flash model are experimental"}
             )
         
         yield messages
 
 #########################################
-with gr.Blocks(fill_height=True) as demo:
-    # TODO: ADD A SYSTEM PROMPT + HISTORY
-    
-    # TODO: -->
-    # system_prompt = gr.TextBox("You are a mushroom expert chatbot that responds to user queries about mushrooms.", label="System Prompt")
+with gr.Blocks(theme=gr.themes.Ocean(), fill_height=True) as demo:
+    """        title=Mushroom Chatbot, 
+                description=For all your mushroom-related queries!
+    """
+    chatbot = gr.Chatbot(type="messages")
+    image = gr.Image(type="filepath")
+    question = gr.Textbox(placeholder="Type your message here and press Enter...")
 
-    chatbot = gr.Chatbot(
-        #fn=response,
-        type="messages",
-        # inputs=["text", "image"],
-        # outputs=["text"],
-        # textbox=gr.MultimodalTextbox(
-        #     file_count='single',       
-        #     file_types=[".png", ".jpg", ".jpeg", "image"]
-        # ),
-        label="Your Personal Mushroom Expert",
-        render_markdown=True
-    )
+    send_button = gr.Button("Send")
+    send_req = send_button.click(stream_gemini_response, [image, question, chatbot], [chatbot])
 
-    input_box = gr.Textbox(
-        lines=1,
-        label="Chat Message",
-        placeholder="Type your message here and press Enter..."
-    )
-
-    input_box.submit(stream_gemini_response, [input_box, chatbot], [chatbot])
 #########################################
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(debug=True)

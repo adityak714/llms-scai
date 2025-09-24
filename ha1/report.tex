@@ -43,9 +43,8 @@
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1em}
 
-\title{\textbf{1RT730} 
-	\\ Report for Hand-in Assignment 1}
-\author{Student Name}
+\title{\textbf{1RT730} LLMs and Societal Consequences of Artificial Intelligence - Report for Hand-in Assignment 1}
+\author{Aditya Khadkikar | adkh8153@student.uu.se}
 \date{\today}
 
 \begin{document}
@@ -53,45 +52,74 @@
 \maketitle
 
 \section{Introduction}
-Very short summary: Did you use Gemini or HuggingFace? What model did you use? How did you integrate multimodality? What prompt did you use? Etc...
+% Very short summary: Did you use Gemini or HuggingFace? What model did you use? How did you integrate multimodality? What prompt did you use? Etc...
 
+For this assignment, Google's Gemini Large Language Model (LLM) was used, specifically, the \\ \texttt{gemini-2.5-flash} model. 
+
+\newpage
 \section{Classification Accuracy}
 Assess if the model can correctly classify mushrooms?
 Note: the model cannot classify the parasol mushroom as the stipe is missing. What happens in this case?
 
+\newpage
 \section{Prediction Consistency}
 The model is likely not consistent in its predictions. One way is to change the temperature of the model and set it to 0.0. What other causes could lead to inconsistent predictions?
 
+\newpage
 \section{Topic Control}
-Can you find a way to make the chatbot talk about another topic than mushrooms? Is it hard? If not, how would you make it harder?
+% Can you find a way to make the chatbot talk about another topic than mushrooms? Is it hard? If not, how would you make it harder?
 
+A method to make the model talk only about the topic of mushrooms, it might need to be controlled with its temperature. With sufficient pre-prompting as another method, it needs to be reminded to stick to the topic of mushroom classification, and avoid any other questions that are outside of the topic. Extending to that, the model can be given examples of when to negate answering an off-topic question, and when to detect whether a question or statement by the user is adhering to the topic of mushrooms. This can look like: 
+
+\{ \\
+    User: What is 5 + 2? \\
+    LLM: I am sorry, but I am not supposed to answer mathematics-related questions. I am an assistant chatbot that answers your questions about mushrooms. Feel free to ask me anything about them! \\
+\} \\ \\
+\{ \\
+    User: Who was the best player in the 2015 Football Match of Arsenal v.s. West Ham in the Premier League? \\
+    LLM: I am sorry, but I am not supposed to answer football-related questions. I am an assistant chatbot that answers your questions about mushrooms.\\
+\} \\ \\
+\{ \\
+    User: I am having Python installation problems, why is my numpy dependency not being loaded correctly? \\
+    LLM: I am sorry, but I am not supposed to answer Python, or coding-related questions. I am an assistant chatbot that answers your questions about mushrooms. Feel free to ask me anything about them! \\
+\}
+
+\newpage
 \section{Transcription Quality}
 Can you ask the chatbot to transcribe the text in the \verb|nya_svampboken_p226.jpg| file? Did it do a good job? Are things reinterpreted or missing?
 
+\newpage
 \section{Safety Filters}
 \begin{itemize}
     \item (Gemini) To transcribe the page from `Nya svampboken`, you may have had to lower the safety of the model. What are the risks and consequences of doing so?
     \item (HuggingFace) HF models don't come with safety filters. What are the risks and consequences of that? How would you approach this problem in a risky scenario?
 \end{itemize}
 
+\newpage
 \section{JSON Output Assessment}
 Does the chatbot provide accurate descriptions given the instructions? Is the JSON format correct? Fields correctly filled? Answers relevant? Summary corresponds to JSON response? 
 
+\newpage
 \section{Answer Quality Check}
 Can you check the quality of the chatbot's answers? How? Try \verb|mushroom_*.jpg| images with various models of various complexities. What are the results? What are the limitations of a mushroom expert chatbot?
 
+\newpage
 \section{Dangerous Knowledge Handling}
 The Amanita Muscaria contains a neurotoxin but is not deadly. It can be eaten if prepared correctly. Can you make the chatbot provide this information? How can you make sure it does not provide it to someone who might eat the mushroom without proper preparation?
 
+\newpage
 \section{(Optional) Engagement}
 Can you find a way to make the chatbot more engaging? How would you do that?
+
+\section{Usage of Generative AI}
+To answer the questions part of this hand-in assignment, Generative AI assistant tools were not used. 
 
 \appendix
 \newpage
 \section{Code}
 Here you can insert your code. Otherwise, you can submit a zip file with this report and your code.
 \label{app:code}
-\lstinputlisting[language=Python,columns=fullflexible]{mushroom_chatbot.py}    
+\lstinputlisting[inputencoding=latin1,language=Python,columns=fullflexible]{mushroom_chatbot.py}    
 
 %\inputminted[frame=lines,framesep=2mm,linenos]{python}{mushroom_chatbot.py}
 
