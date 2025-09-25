@@ -10,6 +10,7 @@
 \usepackage{xcolor}
 \usepackage{listings} %Alternative to minted
 %\usepackage{minted}
+\usepackage{graphicx}
 
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \definecolor{myred}{rgb}{0.8,0.1,0.1}
@@ -58,8 +59,14 @@ For this assignment, Google's Gemini Large Language Model (LLM) was used, specif
 
 \newpage
 \section{Classification Accuracy}
-Assess if the model can correctly classify mushrooms?
-Note: the model cannot classify the parasol mushroom as the stipe is missing. What happens in this case?
+Assess if the model can correctly classify mushrooms? Note: the model cannot classify the parasol mushroom as the stipe is missing. What happens in this case?
+
+Trials done for each image were 3. As the image input block in the UI framework Gradio sends also the path to the image as potential information to the LLM, it was chosen to mask the names of the \texttt{.jpg} files, to just be named as \texttt{image-*.png} [1,2,..].
+
+\includegraphics[width=0.6\textwidth]{data/mushroom_copper_spike.jpg} \\
+\includegraphics[width=0.7\textwidth]{data/mushroom_deadly_webcap.jpg} \\
+\includegraphics[width=0.7\textwidth]{data/mushroom_false_chanterelle.jpg} \\
+\includegraphics[width=0.7\textwidth]{data/mushroom_parasol_topview.jpg} \\
 
 \newpage
 \section{Prediction Consistency}
@@ -88,11 +95,12 @@ A method to make the model talk only about the topic of mushrooms, it might need
 \section{Transcription Quality}
 Can you ask the chatbot to transcribe the text in the \verb|nya_svampboken_p226.jpg| file? Did it do a good job? Are things reinterpreted or missing?
 
+\includegraphics[width=\textwidth]{transcribing-svampboken.png}
+
 \newpage
 \section{Safety Filters}
 \begin{itemize}
     \item (Gemini) To transcribe the page from `Nya svampboken`, you may have had to lower the safety of the model. What are the risks and consequences of doing so?
-    \item (HuggingFace) HF models don't come with safety filters. What are the risks and consequences of that? How would you approach this problem in a risky scenario?
 \end{itemize}
 
 \newpage
@@ -126,5 +134,7 @@ Here you can insert your code. Otherwise, you can submit a zip file with this re
 \newpage
 \section{Chat Examples}
 Insert transcripts or screenshots of chatbot responses.
-	
+
+\includegraphics[width=\textwidth]{wrong-answering.png}
+
 \end{document}

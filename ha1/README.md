@@ -8,13 +8,13 @@ The goal of the chatbot is to be able to answer questions about mushrooms and pr
 Write a report, following the given overleaf template, that contains the answers to the questions in `Things to check` and the code for the exercises in `Main exercises`. The report should also contain examples of the chatbot responses for the exercises. Submit the report, alongside your code, through Canvas.
 
 #### Main exercises:
- 1. Add the Gemini (or HuggingFace) chatbot to the interface.
- 2. Make the chatbot multimodal so that it can read mushroom images.
- 3. Add instructions to the chatbot, so that it behaves like a mushroom expert, and that it stirs the conversation in the right direction (i.e. mushrooms related).
- 4. Stream the answers and display the chunks of text as they are being processed.
+ 1. Add the Gemini (or HuggingFace) chatbot to the interface. (DONE)
+ 2. Make the chatbot multimodal so that it can read mushroom images. (DONE)
+ 3. Add instructions to the chatbot, so that it behaves like a mushroom expert, and that it stirs the conversation in the right direction (i.e. mushrooms related). (DONE)
+ 4. Stream the answers and display the chunks of text as they are being processed. (DONE)
  5. (Gemini only) Print a message when the chatbot's safety filter is triggered.
  6. (Gemini only) If the streaming fails, it is not possible to keep the conversation going. Add a try catch block to handle this situation (tip: use the rewind function for Gemini).
- 7. When the chatbot receives an image, ask it to produce a JSON response with the following fields: common_name, genus, confidence (of the prediction), visible (what parts of the mushrooms are visible in the image, from the set {cap, hymenium, stipe}, the color of the mushroom in the picture and the edibility of the mushroom. As an example:
+ 7. When the chatbot receives an image, ask it to produce a JSON response with the following fields: common_name, genus, confidence (of the prediction), visible (what parts of the mushrooms are visible in the image, from the set {cap, hymenium, stipe}), the color of the mushroom in the picture and the edibility of the mushroom. As an example:
       ```json
       {
       "common_name": "Inkcap",

@@ -1,0 +1,10 @@
+```json
+{
+    "common_name": "Webcap",
+    "genus": "Cortinarius",
+    "confidence": 0.8,
+    "visible": "cap",
+    "color": "brown",
+    "edibility": false
+}
+```
