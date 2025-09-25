@@ -25,8 +25,8 @@ Write a report, following the given overleaf template, that contains the answers
       "edible": true
       }
       ```
-    Do not display the information in the chatbot, but print it in the console. Let the chatbot keep this information in mind for the next questions.
- 8. If the user asked a question when they sent the image, after processing said image, answer the question, but if no questions were asked, provide a summary of the processed image, using the information in the JSON response.
+    Do not display the information in the chatbot, but print it in the console. Let the chatbot keep this information in mind for the next questions. (DONE)
+ 8. If the user asked a question when they sent the image, after processing said image, answer the question, but if no questions were asked, provide a summary of the processed image, using the information in the JSON response. (DONE)
 
 #### Things to check (after completing the exercises):
  1. Assess if the model can correctly classify mushrooms? (The value is in the quality of your assessment, not the result itself.) Note: the model cannot classify the parasol mushroom as all information is not visible in the image (the stipe is missing). What happens in this case?
@@ -43,8 +43,8 @@ Write a report, following the given overleaf template, that contains the answers
 
 #### Optional exercises:
  1. Add a description to the chat interface.
- 2. Add a theme to the chat interface.
- 3. Add a few examples to the chat interface.
+ 2. Add a theme to the chat interface. (DONE)
+ 3. Add a few examples to the chat interface. 
 
 #### Evaluation
 
