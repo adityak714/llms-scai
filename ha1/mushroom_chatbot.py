@@ -14,9 +14,6 @@ from gradio import ChatMessage
 from PIL import Image
 
 def stream_gemini_response(user_message: str, messages: list, file, temp) -> Iterator[list]:
-    print("COMPARISON: MESSAGES >>>>", messages)
-    print("HISTORY >>>>>", history)
-
     history.append(ChatMessage(role="user", content=user_message))
     
     instructions = "You are an assistant bot that is only to discuss about mushrooms. You have to also talk to the user in a natural fashion, so that you do not sound like a robot. Understand the question given to you, and check if it relates to mushrooms, or information about them. If it does not, tell the user to ask a new question, or to reformulate the question. Use the information made available to you, and provide an appropriate response with the resources for mushroom knowledge you have."
@@ -40,7 +37,7 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
             common_name, 
             genus, 
             confidence (of your prediction), 
-            visible (what parts of the mushrooms are visible in the image, only selecting one from the enumerations {cap, hymenium, stipe}), 
+            visible (what parts of the mushrooms are visible in the image, selecting one, multiple OR all of the enumerations {cap, hymenium, stipe}), 
             color (of the mushroom in the picture),
             edible (is the mushroom edible? must be a {boolean})
         }
@@ -50,16 +47,14 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
     config = types.GenerateContentConfig(
                 system_instruction=instructions,
                 temperature=temp,
-                # TODO: Try changing these
+                # Safety feedback -- generateContent returns a GenerateContentResponse which includes safety feedback.
                 safety_settings=[
                     types.SafetySetting(
-                        category='HARM_CATEGORY_HATE_SPEECH',
-                        threshold='BLOCK_ONLY_HIGH',
+                        category='HARM_CATEGORY_DANGEROUS_CONTENT',
+                        threshold='BLOCK_LOW_AND_ABOVE',
                     )
                 ]
             )
-
-    print(payload)
 
     if not empty_message: 
         # Initialize buffers
@@ -75,47 +70,51 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
             )
         )
 
-        for chunk in client.models.generate_content_stream(
-            model=model,
-            contents=payload,
-            config=config):
-            parts = chunk.candidates[0].content.parts
-            current_chunk = parts[0].text
-            
-            if len(parts) == 2 and not thinking_complete:
-                # Complete thought and start response
-                thought_buffer += current_chunk
-                history[-1] = ChatMessage(
-                    role="assistant",
-                    content=thought_buffer
-                )
-                
-                # Add response message
-                history.append(
-                    ChatMessage(
-                        role="assistant",
-                        content=parts[1].text
-                    )
-                )
-                thinking_complete = True
-                
-            elif thinking_complete:
-                # Continue streaming response
-                response_buffer += current_chunk
-                history[-1] = ChatMessage(
-                    role="assistant",
-                    content=response_buffer
-                )
-                
-            else:
-                # Continue streaming thoughts
-                thought_buffer += current_chunk
-                history[-1] = ChatMessage(
-                    role="assistant",
-                    content=thought_buffer
-                )
+        for chunk in client.models.generate_content_stream(model=model, contents=payload, config=config):
+            try:
+                parts = chunk.candidates[0].content.parts
+                current_chunk = parts[0].text
 
-            yield history[-1]
+                if len(parts) == 2 and not thinking_complete:
+                    # Complete thought and start response
+                    thought_buffer += current_chunk
+                    history[-1] = ChatMessage(
+                        role="assistant",
+                        content=thought_buffer
+                    )
+                    
+                    # Add response message
+                    history.append(
+                        ChatMessage(
+                            role="assistant",
+                            content=parts[1].text
+                        )
+                    )
+                    thinking_complete = True
+                    
+                elif thinking_complete:
+                    # Continue streaming response
+                    response_buffer += current_chunk
+                    history[-1] = ChatMessage(
+                        role="assistant",
+                        content=response_buffer
+                    )
+                    
+                else:
+                    # Continue streaming thoughts
+                    thought_buffer += current_chunk
+                    history[-1] = ChatMessage(
+                        role="assistant",
+                        content=thought_buffer
+                    )
+
+                yield history[-1]
+            except Exception:
+                if chunk.usage_metadata:
+                    print("\n>>>>>>>>>>>>>>>>>>> Safety Filter Triggered <<<<<<<<<<<<<<<<<<<<<<<")
+                    print(chunk) # Print what safety filters were violated in just the terminal
+                    print(">>>>>>>>>>>>>>>>>>> *********************** <<<<<<<<<<<<<<<<<<<<<<<")
+                yield "There was an error. Please try again."
     else:
         # LLM still records it in the array of messages, and 
         # does not reveal to the user.
@@ -124,8 +123,8 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
 
         # Print JSON to the console
         print(response.text
-              .replace("```json", "")   # remove markdown wrappings generated by the LLM
-              .replace("```", ""))      # as they are unnecessary.
+            .replace("```json", "")   # remove markdown wrappings generated by the LLM
+            .replace("```", ""))      # as they are unnecessary.
         
         history.append(        
             ChatMessage(
@@ -134,10 +133,8 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
             )
         )
 
-        yield "Noted. Ask away about it!"
-    
-    print("AFTER: MESSAGES >>>>", messages)
-    print("AFTER: HISTORY >>>>>", history)
+        yield "Noted. Ask away about it! \n" + response.text
+            
 
 #########################################
 with gr.Blocks(theme=gr.themes.Ocean(), fill_height=True) as demo:
