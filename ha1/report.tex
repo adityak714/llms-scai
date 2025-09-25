@@ -11,6 +11,11 @@
 \usepackage{listings} %Alternative to minted
 %\usepackage{minted}
 \usepackage{graphicx}
+\usepackage{tabto}
+\newenvironment{tabs}[1]
+ {\flushleft\TabPositions{#1}}
+ {\endflushleft}
+
 
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \definecolor{myred}{rgb}{0.8,0.1,0.1}
@@ -57,18 +62,38 @@
 
 For this assignment, Google's Gemini Large Language Model (LLM) was used, specifically, the \\ \texttt{gemini-2.5-flash} model. 
 
-\newpage
+% 1. Assess if the model can correctly classify mushrooms? (The value is in the quality of your assessment, not the result itself.) Note: the model cannot classify the parasol mushroom as all information is not visible in the image (the stipe is missing). What happens in this case? 
+This report provides the implementation process of an LLM interface in Python, consisting of the UI made by Gradio, and a chatbot-style interface sending requests to the Gemini API, and printing the responses to the screen. The model is part of an assistant bot that answers questions about mushrooms, and can accept a user questions, as well as optionally images. The model's classification and prediction (asking twice for checking the same image) capability was investigated, as well as how well it can stay on-topic for the domain of mushrooms. Different images are given to the mushroom LLM to provide info about. Some bonus personal images of mushrooms, labelled \texttt{my-mushroom*.png} were also sent, where image 1 is a mushroom found near the forest area of Campus Ångström in Uppsala, and image 2 is a mushroom found in a forest in East Stockholm. A page from a textbook in Swedish about mushrooms was also given to the model, to see how well it is able to transcribe it, in both the original language (Swedish), and later in English. 
+
+LLM models also have safety features in them, in order to prevent the wrong kinds of questions being sent, or wrong kinds of answers returned that could be politically manipulative, harmful, dangerous, ethically incorrect or inappropriate. A detection feature of when safety criteria are violated has been implemented, and an alternate response is given when the question cannot be answered by the LLM (an error response). Lastly, a discussion is also made about what can be the implications or effects of lowering safety thresholds in LLM configurations.
+
 \section{Classification Accuracy}
 Assess if the model can correctly classify mushrooms? Note: the model cannot classify the parasol mushroom as the stipe is missing. What happens in this case?
 
 Trials done for each image were 3. As the image input block in the UI framework Gradio sends also the path to the image as potential information to the LLM, it was chosen to mask the names of the \texttt{.jpg} files, to just be named as \texttt{image-*.png} [1,2,..].
 
-\includegraphics[width=0.6\textwidth]{data/mushroom_copper_spike.jpg} \\
-\includegraphics[width=0.7\textwidth]{data/mushroom_deadly_webcap.jpg} \\
-\includegraphics[width=0.7\textwidth]{data/mushroom_false_chanterelle.jpg} \\
-\includegraphics[width=0.7\textwidth]{data/mushroom_parasol_topview.jpg} \\
+1) \includegraphics[width=0.22\textwidth]{data/mushroom_copper_spike.jpg}
+2) \includegraphics[width=0.22\textwidth]{data/mushroom_deadly_webcap.jpg}
+3) \includegraphics[width=0.22\textwidth]{data/mushroom_false_chanterelle.jpg}
+4) \includegraphics[width=0.22\textwidth]{data/mushroom_parasol_topview.jpg} \\
 
-\newpage
+Some additional images I tried testing it on were the following: \\
+
+5) \includegraphics[width=0.25\textwidth]{data/my-mushroom.png}
+6) \includegraphics[width=0.25\textwidth]{data/my-mushroom-2.png} \\
+
+The first image from the left is a mushroom I found near the forest area of Campus Ångström in Uppsala, and the second image is a mushroom found in a forest in East Stockholm.
+
+These were the JSON objects generated for each of the images:
+% TODO
+% TODO
+
+- Eventually predicted mushroom 2) correctly after an initial conversation was ongoing, about the edibility of mushroom 4). 
+
+Next, I compared the responses with the \texttt{groundtruth\_transcript.txt} file containing some information about the images provided. 
+
+% TODO
+
 \section{Prediction Consistency}
 The model is likely not consistent in its predictions. One way is to change the temperature of the model and set it to 0.0. What other causes could lead to inconsistent predictions?
 
@@ -76,26 +101,33 @@ The model is likely not consistent in its predictions. One way is to change the 
 \section{Topic Control}
 % Can you find a way to make the chatbot talk about another topic than mushrooms? Is it hard? If not, how would you make it harder?
 
-A method to make the model talk only about the topic of mushrooms, it might need to be controlled with its temperature. With sufficient pre-prompting as another method, it needs to be reminded to stick to the topic of mushroom classification, and avoid any other questions that are outside of the topic. Extending to that, the model can be given examples of when to negate answering an off-topic question, and when to detect whether a question or statement by the user is adhering to the topic of mushrooms. This can look like: 
+A method to make the model talk only about the topic of mushrooms, was sufficient pre-prompting. It needs to be reminded to stick to the topic of mushroom classification, and avoid any other questions that are outside of the topic. This worked quite well, and for off-topic questions like "Tell me about the grass beside the mushroom in the image", it asked the user to ask something regarding the mushrooms. 
 
+Extending to that, the model can be given examples of when to negate answering an off-topic question, and when to detect whether a question or statement by the user is adhering to the topic of mushrooms. This can look like: 
+
+\begin{tabs}{2cm, 4cm}
 \{ \\
-    User: What is 5 + 2? \\
-    LLM: I am sorry, but I am not supposed to answer mathematics-related questions. I am an assistant chatbot that answers your questions about mushrooms. Feel free to ask me anything about them! \\
-\} \\ \\
+    \tab User: What is 5 + 2? \\
+    \tab LLM: I am sorry, but I am not supposed to answer mathematics-related questions. \\ \tab I am an assistant chatbot that answers your questions about mushrooms. \\ \tab Feel free to ask me anything about them! \\
+\} \\
 \{ \\
-    User: Who was the best player in the 2015 Football Match of Arsenal v.s. West Ham in the Premier League? \\
-    LLM: I am sorry, but I am not supposed to answer football-related questions. I am an assistant chatbot that answers your questions about mushrooms.\\
-\} \\ \\
+    \tab User: Who was the best player in the 2015 Football Match of Arsenal v.s. \\ \tab West Ham in the Premier League? \\
+    \tab LLM: I am sorry, but I am not supposed to answer football-related questions. \\ \tab I am an assistant chatbot that answers your questions about mushrooms.\\
+\} \\
 \{ \\
-    User: I am having Python installation problems, why is my numpy dependency not being loaded correctly? \\
-    LLM: I am sorry, but I am not supposed to answer Python, or coding-related questions. I am an assistant chatbot that answers your questions about mushrooms. Feel free to ask me anything about them! \\
+    \tab User: I am having Python installation problems, why is it not being loaded correctly? \\
+    \tab LLM: I am sorry, but I am not supposed to answer Python, or coding-related questions. \\ \tab I am an assistant chatbot that answers your questions about mushrooms. \\ \tab Feel free to ask me anything about them! \\
 \}
+\end{tabs}
+
+This also was beneficial in bringing the LLM to only answer related to mushrooms. However, with regards to token limits, and how much info is allowed to be sent to LLMs through API requests, it may take up a lot of tokens. Therefore, it is appropriate to do so if one has a sufficiently large token allowance.
 
 \newpage
 \section{Transcription Quality}
 Can you ask the chatbot to transcribe the text in the \verb|nya_svampboken_p226.jpg| file? Did it do a good job? Are things reinterpreted or missing?
 
-\includegraphics[width=\textwidth]{transcribing-svampboken.png}
+\includegraphics[width=\textwidth]{images/transcription-eng.png}
+\includegraphics[width=\textwidth]{images/transcription-swe.png}
 
 \newpage
 \section{Safety Filters}
@@ -103,13 +135,37 @@ Can you ask the chatbot to transcribe the text in the \verb|nya_svampboken_p226.
     \item (Gemini) To transcribe the page from `Nya svampboken`, you may have had to lower the safety of the model. What are the risks and consequences of doing so?
 \end{itemize}
 
+For transcribing the image, I did not need to particularly lower the safety of the model. A detection of whether one, or multiple safety criteria were violated was done using a try-catch block in Python. From the Google Gemini safety thresholds documentation, it was mentioned that if safety criteria are violated, then a new attribute is returned in the first chunk itself (if streaming), known as \texttt{GenerateContentResponse}. Additionally, the streaming of the LLM's answer would be aborted, hence it would not be printed in the UI. Therefore, the logic of sending the user query, and streaming the response from Gemini was wrapped in a try-except. If an AttributeError was detected (the next chunk not having a \texttt{.parts} attribute in dict), then likely the model decided not to return an answer, based on its safety criteria. On the Python kernel, it is printed as the following:
+
+\includegraphics[width=\textwidth]{images/safety-filter-consoleprint.png}
+
+On the UI side of Gradio, the LLM interface returns "There was an error. Please try again." to the user. The safety thresholds had to be lowered to a level like BLOCK\_LOW\_AND\_ABOVE. In the Gemini documentation, there are default safety configurations that a gemini model instance has, and certain ones that the user can control, at different probability of a safety violation (BLOCK\_ONLY\_HIGH, BLOCK\_NONE, BLOCK\_MEDIUM\_AND\_ABOVE, etc). 
+
+\subsection{Risks and Consequences}
+
+
 \newpage
 \section{JSON Output Assessment}
 Does the chatbot provide accurate descriptions given the instructions? Is the JSON format correct? Fields correctly filled? Answers relevant? Summary corresponds to JSON response? 
 
+\begin{center}
+\includegraphics[scale=0.25]{images/q7-8-json-response.png}    
+\end{center}
+
+The returned JSON output seems correct, however the entry characters \texttt{```json}, and \texttt{```} were returned by the LLM in every response despite particular \texttt{system\_instructions} given to the google-genai client. As shown in the code attached at the end of the report, an if-block was created that checks whether a file has been provided, AND the content from the Textblock was empty (`'). If that is true, then a certain \texttt{system\_instructions} prompt is given, for facilitating a JSON response as an answer, otherwise the default introductory prompt is given, saying \texttt{`You are an assistant bot that is only to discuss about mushrooms. You ...'}. As per the instructions, it was instructed to give the object with only a fixed set of attributes, and was also prompted on what it should fill in for each field. 
+
+\begin{center}
+\includegraphics[scale=0.55]{images/json-prompttemplate.png}    
+\end{center}
+
+
 \newpage
 \section{Answer Quality Check}
 Can you check the quality of the chatbot's answers? How? Try \verb|mushroom_*.jpg| images with various models of various complexities. What are the results? What are the limitations of a mushroom expert chatbot?
+
+Memory: If there was just an image sent, for example, then the model has recorded its generated JSON information object in its history, and can still answer following questions by the user. To test this, I had first uploaded the image, and sent an empty text. It makes note of it, and prints the JSON on both the UI as well as on the Python kernel terminal on which it is running. I then removed the image, and then sent just a text question, testing its history, by asking "What was the genus of the mushroom?", and it provided correctly.
+
+\includegraphics[width=\textwidth]{images/testing-memory.png}
 
 \newpage
 \section{Dangerous Knowledge Handling}
@@ -120,7 +176,7 @@ The Amanita Muscaria contains a neurotoxin but is not deadly. It can be eaten if
 Can you find a way to make the chatbot more engaging? How would you do that?
 
 \section{Usage of Generative AI}
-To answer the questions part of this hand-in assignment, Generative AI assistant tools were not used. 
+To answer the questions part of this hand-in assignment, Generative AI assistant tools were not used. Long live human intelligence.
 
 \appendix
 \newpage
@@ -135,6 +191,6 @@ Here you can insert your code. Otherwise, you can submit a zip file with this re
 \section{Chat Examples}
 Insert transcripts or screenshots of chatbot responses.
 
-\includegraphics[width=\textwidth]{wrong-answering.png}
+\includegraphics[width=\textwidth]{images/wrong-answering.png}
 
 \end{document}

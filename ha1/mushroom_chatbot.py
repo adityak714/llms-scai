@@ -6,9 +6,6 @@ load_dotenv()
 from google import genai
 from google.genai import types
 
-client = genai.Client()
-model = "gemini-2.0-flash"
-
 import gradio as gr
 from gradio import ChatMessage
 from PIL import Image
@@ -16,7 +13,7 @@ from PIL import Image
 def stream_gemini_response(user_message: str, messages: list, file, temp) -> Iterator[list]:
     history.append(ChatMessage(role="user", content=user_message))
     
-    instructions = "You are an assistant bot that is only to discuss about mushrooms. You have to also talk to the user in a natural fashion, so that you do not sound like a robot. Understand the question given to you, and check if it relates to mushrooms, or information about them. If it does not, tell the user to ask a new question, or to reformulate the question. Use the information made available to you, and provide an appropriate response with the resources for mushroom knowledge you have."
+    instructions = "You are an assistant bot that is only to discuss about mushrooms. You have to also talk to the user in a natural fashion, so that you do not sound like a robot. Understand the question given to you, and check if it relates to mushrooms, or information about them. If it does not, tell the user to ask a new question, or to reformulate the question. Use the information made available to you, and provide an appropriate response for the mushroom knowledge you have. You must answer the question fully, and not direct the user to find the answer themselves. You need to find and return an answer."
     
     prompt = f'{"Question: " + history[-1].content if history[-1].content != "" else ""}' + "\n\nHistory:\n" + "".join([record.content for record in history[:-1]])
     empty_message = False
@@ -31,28 +28,33 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
         payload = [prompt, Image.open(file)]
     if file and user_message == "":
         empty_message = True
-        instructions = """You are an assistant bot that is only to discuss about mushrooms. If the question is absent, and just an image is present, you must generate a valid JSON object as your response, containing the attributes: 
+        instructions = """You are an assistant bot that is only to discuss about mushrooms. If the question is absent, and just an image is present, you have to analyze attributes about the mushroom present. You must fill in the right features about the mushroom you analyze, and return a valid JSON object as your response, containing the attributes: 
         
+        ```json
         {
-            common_name, 
-            genus, 
+            common_name (of the mushroom in the image), 
+            genus (of the mushroom in the image), 
             confidence (of your prediction), 
             visible (what parts of the mushrooms are visible in the image, selecting one, multiple OR all of the enumerations {cap, hymenium, stipe}), 
             color (of the mushroom in the picture),
             edible (is the mushroom edible? must be a {boolean})
         }
+        ```
 
         Therefore, you must have 6 attributes in your generated JSON, and only that is your answer format. Strict JSON syntax must be followed."""
+
+    client = genai.Client()
+    model = "gemini-2.0-flash"
 
     config = types.GenerateContentConfig(
                 system_instruction=instructions,
                 temperature=temp,
                 # Safety feedback -- generateContent returns a GenerateContentResponse which includes safety feedback.
                 safety_settings=[
-                    types.SafetySetting(
-                        category='HARM_CATEGORY_DANGEROUS_CONTENT',
-                        threshold='BLOCK_LOW_AND_ABOVE',
-                    )
+                    #types.SafetySetting(
+                    #    category='HARM_CATEGORY_DANGEROUS_CONTENT',
+                    #    threshold='BLOCK_LOW_AND_ABOVE',
+                    #)
                 ]
             )
 
