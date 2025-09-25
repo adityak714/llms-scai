@@ -20,12 +20,14 @@ def image_to_base64(image_path):
     return encoded_string.decode('utf-8')
 
 def stream_gemini_response(user_message: str, messages: list, file, temp) -> Iterator[list]:
-    print("MESSAGES >>>>>>>", messages)
+    print("COMPARISON: MESSAGES >>>>", messages)
+    print("HISTORY >>>>>", history)
+
+    history.append(ChatMessage(role="user", content=user_message))
     
     instructions = "You are an assistant bot that is only to discuss about mushrooms. You have to also talk to the user in a natural fashion, so that you do not sound like a robot. Understand the question given to you, and check if it relates to mushrooms, or information about them. If it does not, tell the user to ask a new question, or to reformulate the question. Use the information made available to you, and provide an appropriate response with the resources for mushroom knowledge you have."
     
-    prompt = user_message + "".join([f'{record["content"]},{record["metadata"]}' for record in messages])
-    print(prompt)
+    prompt = f'{"Question: " + history[-1].content if history[-1].content != "" else ""}' + "\n\nHistory:\n" + "".join([record.content for record in history[:-1]])
     empty_message = False
 
     # Initially set the payload to be the prompt
@@ -63,6 +65,8 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
                 ]
             )
 
+    print(payload)
+
     if not empty_message: 
         # Initialize buffers
         thought_buffer = ""
@@ -70,7 +74,7 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
         thinking_complete = False
         
         # Add initial thinking message
-        messages.append(
+        history.append(
             ChatMessage(
                 role="assistant",
                 content=""
@@ -87,13 +91,13 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
             if len(parts) == 2 and not thinking_complete:
                 # Complete thought and start response
                 thought_buffer += current_chunk
-                messages[-1] = ChatMessage(
+                history[-1] = ChatMessage(
                     role="assistant",
                     content=thought_buffer
                 )
                 
                 # Add response message
-                messages.append(
+                history.append(
                     ChatMessage(
                         role="assistant",
                         content=parts[1].text
@@ -104,7 +108,7 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
             elif thinking_complete:
                 # Continue streaming response
                 response_buffer += current_chunk
-                messages[-1] = ChatMessage(
+                history[-1] = ChatMessage(
                     role="assistant",
                     content=response_buffer
                 )
@@ -112,43 +116,39 @@ def stream_gemini_response(user_message: str, messages: list, file, temp) -> Ite
             else:
                 # Continue streaming thoughts
                 thought_buffer += current_chunk
-                messages[-1] = ChatMessage(
+                history[-1] = ChatMessage(
                     role="assistant",
                     content=thought_buffer
                 )
 
-            yield messages
+            yield history[-1]
     else:
         # LLM still records it in the array of messages, and 
         # does not reveal to the user.
         new_client = genai.Client()
         response = new_client.models.generate_content(model=model, contents=payload, config=config)
-            
-        # but prints to the interface that it has made note of the image.
-        with open("temp.txt", "w") as f:
-            if response.text is not None:
-                f.write(response.text)
 
-        yield "Noted."
-
-        with open("temp.txt", "r") as f:
-            json_stored = str(f.read())
-            messages.append(
-                ChatMessage(
-                    role="assistant", 
-                    content=json_stored
-                )
+        history.append(        
+            ChatMessage(
+                role="assistant", 
+                content=response.text
             )
-            # TODO: Major issue, messages are resetting in the chat interface.
-            print(messages)
-        # os.delete(file)?
+        )
+
+        yield "Noted. Ask away about it!"
+    
+    print("AFTER: MESSAGES >>>>", messages)
+    print("AFTER: HISTORY >>>>>", history)
 
 #########################################
 with gr.Blocks(theme=gr.themes.Ocean(), fill_height=True) as demo:
+    history = []
+
     with gr.Row(equal_height=True):
         with gr.Column(scale=3):
             image = gr.Image(type="filepath", height=300, sources=["upload", "clipboard"])    
             question = gr.Textbox(placeholder="Type your message here and press Enter...")
+            # slider = gr.Slider(0.0, 1.0, step=0.05, label="Temperature")
         with gr.Column(scale=7):
             chatbot = gr.Chatbot(type="messages", autoscroll=True)
             chat_interface = gr.ChatInterface(
@@ -160,9 +160,9 @@ with gr.Blocks(theme=gr.themes.Ocean(), fill_height=True) as demo:
                 textbox=question,
                 additional_inputs=[
                     image, 
+                    # history, --> why wasn't this thought of earlier?
                     gr.Slider(0.0, 1.0, step=0.05, label="Temperature")
-                ],
-                save_history=True
+                ]
             )
 
 #########################################
