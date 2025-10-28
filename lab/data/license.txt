@@ -1,6 +1,0 @@
-chain_of_thought_prompting.pdf:
-    CC BY 4.0, Jason Wei et al.
-    https://arxiv.org/abs/2201.11903
-engineer_fitting_prosthetic_arm.jpg:
-    Pexels License, ThisIsEngineering
-    https://www.pexels.com/photo/engineer-fitting-prosthetic-arm-3912992/
